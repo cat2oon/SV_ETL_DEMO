@@ -1,0 +1,9 @@
+---
+## Default Logstash configuration from Logstash base image.
+## https://github.com/elastic/logstash/blob/main/docker/data/logstash/config/logstash-full.yml
+#
+http.host: 0.0.0.0
+node.name: logstash
+
+config.reload.automatic: true   # UI 매니저를 사용하지 않는 이상 설정 변경 감지 자동로드 편의성
+config.reload.interval: 30s 
