@@ -1,0 +1,21 @@
+defaults:
+  - _self_
+
+hydra:
+  job_logging:
+    enabled: false
+  hydra_logging:
+    enabled: false
+
+urls:
+  recent: "https://web.joongna.com/product/list?type=recent"
+  product: "https://web.joongna.com/product/{pid}"
+
+kafka:
+  bootstrap_servers: "172.18.0.8:19092,172.18.0.7:39092,172.18.0.6:29092"
+  client_id: "py.joongonara.product.scraper.1"
+
+scraper:
+  random_visit: False
+  num_visits: 1000
+  num_workers: 10
