@@ -1,6 +1,6 @@
 from scraper.product import Product
-from confluent_kafka import Producer
 from scraper.logger import get_logger
+from confluent_kafka.avro import AvroProducer
 
 
 logger = get_logger("kafka")
@@ -17,15 +17,24 @@ def when_published(err, msg):
     logger.error(f"failed to publish: {err}")
 
 
-class KafkaProducer:
+class KafkaProductProducer:
     def __init__(self, bootstrap_servers: str, client_id: str):
+        key_schema, value_schema = Product.get_schema_in_key_value()
+
         self.KAFKA_CONFIG = {
+            "schema.registry.url": "http://localhost:8081",
             "bootstrap.servers": bootstrap_servers,
             "client.id": client_id,
         }
-        self.producer = Producer(self.KAFKA_CONFIG)
 
-    def publish_event(self, topic: str, key: str, value: bytes):
+        logger.info(f"create kafka producer by config: {self.KAFKA_CONFIG}")
+        self.producer = AvroProducer(
+            self.KAFKA_CONFIG,
+            default_key_schema=key_schema,
+            default_value_schema=value_schema,
+        )
+
+    def publish_event(self, topic: str, key: int, value: bytes):
         self.producer.produce(
             topic=topic, key=key, value=value, callback=when_published
         )
@@ -33,4 +42,4 @@ class KafkaProducer:
 
     def publish_product(self, prod: Product):
         topic = "marketplace.joongonara.product.scraped"  # TODO: hdyra config
-        self.publish_event(topic, str(prod.pid), prod.encode_by_avro())
+        self.publish_event(topic, prod.pid, prod.to_dict())

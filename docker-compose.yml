@@ -1,7 +1,12 @@
+---
+#------------------------------------------------------------------
+# TODO: 고정된 내부 아이피 발급
+#------------------------------------------------------------------
+
 #------------------------------------------------------------------
 # Common variable
 #------------------------------------------------------------------
-x-variables:  
+x-variables:
   password: &password "sv_demo"
   ELASTIC_VERSION: &elastic_version 8.17.2
 
@@ -13,12 +18,14 @@ volumes:
     driver: local
 
 services:
-
+  #------------------------------------------------------------------
+  # Kafka UI
+  #------------------------------------------------------------------
   kafka-ui:
     container_name: kafka-ui
     image: provectuslabs/kafka-ui:latest
     ports:
-      - 5580:8080  
+      - 5580:8080
     environment:
       DYNAMIC_CONFIG_ENABLED: true
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-1:19092,kafka-2:29092,kafka-3:39092
@@ -32,9 +39,69 @@ services:
     networks:
       - kafka_net
 
-#------------------------------------------------------------------
-# Kafka Zookeeper
-#------------------------------------------------------------------
+  #------------------------------------------------------------------
+  # Schema Registry
+  #------------------------------------------------------------------
+  schema-registry:
+    image: confluentinc/cp-schema-registry:latest
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "kafka-1:19092,kafka-2:29092,kafka-3:39092"
+      SCHEMA_REGISTRY_HOST_NAME: "schema-registry"
+    ports:
+      - "8081:8081"
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    networks:
+      - kafka_net
+
+  #------------------------------------------------------------------
+  # Kafka Connect
+  #------------------------------------------------------------------
+  connect:
+    image: confluentinc/cp-kafka-connect:latest
+    environment:
+      CONNECT_REST_PORT: 8083
+      CONNECT_BOOTSTRAP_SERVERS: kafka-1:19092,kafka-2:29092,kafka-3:39092
+      CONNECT_REST_ADVERTISED_HOST_NAME: connect
+      CONNECT_GROUP_ID: "kafka.connect.group"
+      CONNECT_CONFIG_STORAGE_TOPIC: "service.connect.configs"
+      CONNECT_OFFSET_STORAGE_TOPIC: "service.connect.offsets"
+      CONNECT_STATUS_STORAGE_TOPIC: "service.connect.status"
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.storage.StringConverter"
+      CONNECT_VALUE_CONVERTER: "io.confluent.connect.avro.AvroConverter"
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    networks:
+      - kafka_net
+    volumes:
+      - ./scraper/jars:/etc/kafka-connect/jars
+
+  #------------------------------------------------------------------
+  # DB
+  #------------------------------------------------------------------
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: on-failure:10
+    environment:
+      MYSQL_DATABASE: joongo_market_product_db
+      MYSQL_USER: sv_user
+      MYSQL_PASSWORD: sv_demo
+      MYSQL_ROOT_PASSWORD: sv_demo_root
+    ports:
+      - "3306:3306"
+    networks:
+      - kafka_net
+
+  #------------------------------------------------------------------
+  # Kafka Zookeeper
+  #------------------------------------------------------------------
   zookeeper-1:
     hostname: zookeeper-1
     image: confluentinc/cp-zookeeper:latest
@@ -95,9 +162,9 @@ services:
     networks:
       - kafka_net
 
-#------------------------------------------------------------------
-# Kafka Broker
-#------------------------------------------------------------------
+  #------------------------------------------------------------------
+  # Kafka Broker
+  #------------------------------------------------------------------
   kafka-1:
     image: confluentinc/cp-kafka:latest
     hostname: kafka-1
@@ -165,9 +232,9 @@ services:
     networks:
       - kafka_net
 
-#------------------------------------------------------------------
-# Kafka Manager
-#------------------------------------------------------------------
+  #------------------------------------------------------------------
+  # Kafka Manager
+  #------------------------------------------------------------------
   akhq:
     image: tchiotludo/akhq:latest
     hostname: akhq
@@ -187,10 +254,10 @@ services:
     networks:
       - kafka_net
 
-#------------------------------------------------------------------
-# ELK
-# https://github.com/deviantony/docker-elk
-#------------------------------------------------------------------
+  #------------------------------------------------------------------
+  # ELK
+  # https://github.com/deviantony/docker-elk
+  #------------------------------------------------------------------
   elasticsearch:
     build:
       context: elasticsearch/
@@ -215,7 +282,7 @@ services:
       # Use single node discovery in order to disable production mode and avoid bootstrap checks.
       # see: https://www.elastic.co/guide/en/elasticsearch/reference/current/bootstrap-checks.html
       discovery.type: single-node
-    restart: unless-stopped
+    restart: on-failure:10
     networks:
       - kafka_net
 
@@ -267,7 +334,6 @@ services:
       - elasticsearch
     networks:
       - kafka_net
-
 
 #------------------------------------------------------------------
 # Network

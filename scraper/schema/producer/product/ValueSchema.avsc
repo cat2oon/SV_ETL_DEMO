@@ -1,0 +1,15 @@
+{
+  "type": "record",
+  "namespace": "com.svdemo.marketplace",
+  "name": "Product",
+  "fields": [
+    { "name": "pid", "type": "int" },
+    { "name": "price", "type": "int" },
+    { "name": "title", "type": "string" },
+    { "name": "description", "type": "string" },
+    { "name": "condition", "type": "string" },
+    { "name": "category_path", "type": "string" },
+    { "name": "error_cause", "type": "string" },
+    { "name": "scraped_at", "type": "string" }
+  ]
+}

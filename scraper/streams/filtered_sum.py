@@ -21,9 +21,8 @@ logger = get_logger("streams.filter")
 
 def decode_product(message):
     key, value = message.key, message.value
-    # bytewax가 이후 파이프라인에서 '키' 타입을 문자열로 요구
-    key = str(int(key.decode()))  # byte(alpha_numeric) -> 문자열
-    product = Product.decode_by_avro(value)
+    key = Product.decode_avro_key(key)
+    product = Product.decode_avro_value(value)
     return key, product
 
 
@@ -86,15 +85,19 @@ def build_data_flow(brokers, source_topic, target_topic, batch_size, kafka_cfg):
 
     op.inspect("inspect_err", kin.errs).then(op.raises, "raise_errors")
 
-    # processing
+    # 데이터 디코딩
     decoded = op.map("decode_product", kin.oks, decode_product)
+
+    # 100만원 이상 버리기
     filtered = op.filter("filter_price", decoded, filter_price)
 
-    # TODO: 분산 스트림 앱에 대한
+    # TODO: 분산 streams 경우 컨슈머 그룹 내 아이디 구분하여 특정 파티션 합계 표현
     key_on = op.key_on("batch_grouping", filtered, lambda _: "unique-each-batch")
-    # op.inspect("mapping_items", key_on)
+    # op.inspect("mapping_items", key_on)  # 체크용도
+
+    # 누적 합계
     summed = op.stateful_batch("accum_price_batch", key_on, lambda _: SumLogic())
-    # summed = op.stateful_map("sum_prices", keyed, aggregate_price)
+    # summed = op.stateful_map("sum_prices", keyed, aggregate_price)  # 체크용도
 
     to_sink_msg = op.map("to_sink_msg", summed, to_ksink_msg)
 
@@ -114,11 +117,17 @@ if __name__ == "__main__":
     batch_size = 10
     source_topic = "marketplace.joongonara.product.scraped"
     target_topic = "marketplace.joongonara.product.filtered.sum"
-    brokers = ["172.18.0.8:19092,172.18.0.7:39092,172.18.0.6:29092"]
+    brokers = ["172.18.0.9:19092,172.18.0.7:29092,172.18.0.8:39092"]
     kafka_cfg = {
         "group.id": "group.kstreams.filtered.sum",
         "enable.auto.commit": "true",
     }
+
+    logger.info(f"*************************************")
+    logger.info(f"kafka streams kafka config: {brokers}")
+    logger.info(f"consumer config: {kafka_cfg}")
+    logger.info(f"source_topic: {source_topic} -> target_topic: {target_topic}")
+    logger.info(f"*************************************")
 
     # 아래 문서에 따르면 일반적인 컨슈머와 다르게 컨슈머 그룹으로 오프셋 저장하지 않는 듯
     # 저장된 OFFSET_STORTED를 사용해야 마지막 오프셋에 이어 읽을 수 있음

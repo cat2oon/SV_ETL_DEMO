@@ -1,4 +1,3 @@
-import traceback
 import trio
 import hydra
 import random
@@ -12,7 +11,7 @@ from scraper.product import (
     extract_product,
     extract_recent_prod_ids,
 )
-from scraper.producer import KafkaProducer
+from scraper.producer import KafkaProductProducer
 
 logger = get_logger("main")
 
@@ -63,8 +62,9 @@ def gen_prod_fetcher(prod_base_url: str):
 
 
 def gen_kafka_producer(kafka_cfg: DictConfig):
-    producer = KafkaProducer(kafka_cfg.bootstrap_servers, kafka_cfg.client_id)
+    producer = KafkaProductProducer(kafka_cfg.bootstrap_servers, kafka_cfg.client_id)
 
+    # TODO: 배치로 묶어서 카프카 전송
     async def kafka_producer(channel):
         async with channel:
             async for prod in channel:

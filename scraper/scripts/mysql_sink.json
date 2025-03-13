@@ -1,0 +1,23 @@
+{
+  "name": "mysql-sink-connector",
+  "config": {
+    "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+    "connection.url": "jdbc:mysql://mysql:3306/joongo_market_product_db?useUnicode=yes&characterEncoding=UTF-8",
+    "connection.user": "sv_user",
+    "connection.password": "sv_demo",
+    "topics": "marketplace.joongonara.product.scraped",
+    "auto.create": "true",
+    "auto.evolve": "true",
+    "auto.offset.reset": "earliest",
+    "insert.mode": "upsert",
+    "pk.mode": "record_value",
+    "pk.fields": "pid",
+    "value.converter": "io.confluent.connect.avro.AvroConverter",
+    "value.converter.schema.registry.url": "http://schema-registry:8081",
+    "key.converter": "io.confluent.connect.avro.AvroConverter",
+    "key.converter.schema.registry.url": "http://schema-registry:8081",
+    "table.name.format": "product",
+    "batch.size": "10",
+    "tasks.max": "1"
+  }
+}

@@ -12,7 +12,8 @@ urls:
   product: "https://web.joongna.com/product/{pid}"
 
 kafka:
-  bootstrap_servers: "172.18.0.8:19092,172.18.0.7:39092,172.18.0.6:29092"
+  # 카프카 클러스터 주소 반영 (혹은 host 이름 등록 or docker ip4 지정)
+  bootstrap_servers: "172.18.0.9:19092,172.18.0.7:29092,172.18.0.8:39092"
   client_id: "py.joongonara.product.scraper.1"
 
 scraper:
