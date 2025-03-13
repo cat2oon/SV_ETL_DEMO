@@ -11,6 +11,17 @@
 - mysql: 카프카 토픽이 유인된 데이터를 카프카 커넥터를 통해 db로 저장 보관
 - connect: 카프카 커넥터들을 등록하고 관리할 수 있는 서비스
 
+# python requirements
+- avro
+- beautifulsoup4
+- bytewax
+- confluent_kafka
+- hydra-core
+- omegaconf
+- requests
+- rich
+- trio
+
 # 스택 선정 이유 (카프카)
 - 버퍼 큐잉 역할: 
   - 대량의 데이터를 상당 기간 보관하는 저장소 역할을 하면서도 제로 카피를 통해 고성능 처리량을 구현
