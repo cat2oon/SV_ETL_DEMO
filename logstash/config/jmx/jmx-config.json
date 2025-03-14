@@ -1,0 +1,20 @@
+{
+  "host": "kafka-1",
+  "port": 19999,
+  "queries": [
+      {
+        "object_name" : "java.lang:type=Memory",
+        "object_alias" : "Memory"
+      }, {
+        "object_name" : "java.lang:type=Runtime",
+        "attributes" : [ "Uptime", "StartTime" ],
+        "object_alias" : "Runtime"
+      }, {
+        "object_name" : "java.lang:type=GarbageCollector,name=*",
+        "attributes" : [ "CollectionCount", "CollectionTime" ],
+        "object_alias" : "${type}.${name}"
+      }, {
+        "object_name" : "java.nio:type=BufferPool,name=*",
+        "object_alias" : "${type}.${name}"
+      } ]
+}
