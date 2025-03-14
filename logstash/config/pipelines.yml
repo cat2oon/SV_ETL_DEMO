@@ -8,7 +8,7 @@
 
 # JMX pipeline
 - pipeline.id: jmx_pipeline
-  path.config: "/usr/share/logstash/pipeline/jmx.conf"
+  path.config: "/usr/share/logstash/pipeline/logstash_kafka_jmx.conf"
   pipeline.workers: 1
   pipeline.batch.size: 1
 

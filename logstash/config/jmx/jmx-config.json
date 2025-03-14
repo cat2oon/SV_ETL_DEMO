@@ -16,5 +16,31 @@
       }, {
         "object_name" : "java.nio:type=BufferPool,name=*",
         "object_alias" : "${type}.${name}"
-      } ]
+      },
+      {
+        "object_name": "kafka.server:type=BrokerTopicMetrics,name=MessagesInPerSec", 
+        "attributes": ["OneMinuteRate"],
+        "object_alias": "${type}.${name}"
+      },
+      {
+        "object_name": "kafka.server:type=BrokerTopicMetrics,name=BytesInPerSec", 
+        "attributes": ["OneMinuteRate"],
+        "object_alias": "${type}.${name}"
+      },
+      {
+        "object_name": "kafka.server:type=BrokerTopicMetrics,name=BytesOutPerSec", 
+        "attributes": ["OneMinuteRate"],
+        "object_alias": "${type}.${name}"
+      },
+      {
+        "object_name": "kafka.network:type=RequestMetrics,name=TotalTimeMs,request=Produce", 
+        "attributes": [ "Mean" ],
+        "object_alias": "${type}.${name}"
+      },
+      {
+        "object_name": "kafka.network:type=RequestMetrics,name=TotalTimeMs,request=FetchConsumer", 
+        "attributes": [ "Mean" ],
+        "object_alias": "${type}.${name}"
+      }
+  ]
 }

@@ -10,6 +10,12 @@ x-variables:
   password: &password "sv_demo"
   ELASTIC_VERSION: &elastic_version 8.17.2
 
+x-container-logging: &container-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "2"
+
 #------------------------------------------------------------------
 # Volumes
 #------------------------------------------------------------------
@@ -38,6 +44,8 @@ services:
       - kafka-3
     networks:
       - kafka_net
+    logging:
+      <<: *container-logging
 
   #------------------------------------------------------------------
   # Schema Registry
@@ -55,6 +63,8 @@ services:
       - kafka-3
     networks:
       - kafka_net
+    logging:
+      <<: *container-logging
 
   #------------------------------------------------------------------
   # Kafka Connect
@@ -81,6 +91,8 @@ services:
       - kafka_net
     volumes:
       - ./scraper/jars:/etc/kafka-connect/jars
+    logging:
+      <<: *container-logging
 
   #------------------------------------------------------------------
   # DB
@@ -98,6 +110,8 @@ services:
       - "3306:3306"
     networks:
       - kafka_net
+    logging:
+      <<: *container-logging
 
   #------------------------------------------------------------------
   # Kafka Zookeeper
@@ -105,7 +119,6 @@ services:
   zookeeper-1:
     hostname: zookeeper-1
     image: confluentinc/cp-zookeeper:latest
-    container_name: sv-zookeeper-1
     restart: always
     environment:
       ZOOKEEPER_SERVER_ID: 1
@@ -121,11 +134,12 @@ services:
       - ./zookeeper/data/1:/zookeeper/data
     networks:
       - kafka_net
+    logging:
+      <<: *container-logging
 
   zookeeper-2:
     hostname: zookeeper-2
     image: confluentinc/cp-zookeeper:latest
-    container_name: sv-zookeeper-2
     restart: always
     environment:
       ZOOKEEPER_SERVER_ID: 2
@@ -141,11 +155,12 @@ services:
       - ./zookeeper/data/2:/zookeeper/data
     networks:
       - kafka_net
+    logging:
+      <<: *container-logging
 
   zookeeper-3:
     hostname: zookeeper-3
     image: confluentinc/cp-zookeeper:latest
-    container_name: sv-zookeeper-3
     restart: always
     environment:
       ZOOKEEPER_SERVER_ID: 3
@@ -161,6 +176,8 @@ services:
       - ./zookeeper/data/3:/zookeeper/data
     networks:
       - kafka_net
+    logging:
+      <<: *container-logging
 
   #------------------------------------------------------------------
   # Kafka Broker
@@ -168,7 +185,6 @@ services:
   kafka-1:
     image: confluentinc/cp-kafka:latest
     hostname: kafka-1
-    container_name: sv-kafka-1
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_HEAP_OPTS: -Xmx4G -Xms1G -XX:+UseG1GC
@@ -183,6 +199,9 @@ services:
                        -Dcom.sun.management.jmxremote.authenticate=false 
                        -Djava.rmi.server.hostname=kafka-1
                        -Dcom.sun.management.jmxremote.ssl=false"
+      KAFKA_ADDITIONAL_CONFIGS: |
+        kafka.metrics.reporters=org.apache.kafka.common.metrics.JmxReporter
+        kafka.metrics.jmx.prefix=kafka
     ports:
       - 19092:9092
       - 19999:19999
@@ -194,11 +213,12 @@ services:
       - zookeeper-3
     networks:
       - kafka_net
+    logging:
+      <<: *container-logging
 
   kafka-2:
     image: confluentinc/cp-kafka:latest
     hostname: kafka-2
-    container_name: sv-kafka-2
     environment:
       KAFKA_BROKER_ID: 2
       KAFKA_HEAP_OPTS: -Xmx4G -Xms1G -XX:+UseG1GC
@@ -216,11 +236,12 @@ services:
       - zookeeper-3
     networks:
       - kafka_net
+    logging:
+      <<: *container-logging
 
   kafka-3:
     image: confluentinc/cp-kafka:latest
     hostname: kafka-3
-    container_name: sv-kafka-3
     environment:
       KAFKA_BROKER_ID: 3
       KAFKA_HEAP_OPTS: -Xmx4G -Xms1G -XX:+UseG1GC
@@ -238,6 +259,8 @@ services:
       - zookeeper-3
     networks:
       - kafka_net
+    logging:
+      <<: *container-logging
 
   #------------------------------------------------------------------
   # Kafka Manager
@@ -260,6 +283,8 @@ services:
       - kafka-3
     networks:
       - kafka_net
+    logging:
+      <<: *container-logging
 
   #------------------------------------------------------------------
   # ELK
@@ -292,6 +317,8 @@ services:
     restart: on-failure:10
     networks:
       - kafka_net
+    logging:
+      <<: *container-logging
 
   logstash:
     build:
@@ -322,6 +349,8 @@ services:
       - kafka-3
     networks:
       - kafka_net
+    logging:
+      <<: *container-logging
 
   kibana:
     build:
@@ -344,6 +373,8 @@ services:
       - kafka-3
     networks:
       - kafka_net
+    logging:
+      <<: *container-logging
 
 #------------------------------------------------------------------
 # Network
