@@ -1,0 +1,11 @@
+output.kafka:
+  hosts: ["kafka-1:19092"]  
+  topic: "filebeat-weblog"  
+  compression: "gzip"  
+  max_message_bytes: 1000000
+
+filebeat.inputs:
+- type: log
+  paths:
+    - /var/log/apache2/*.log
+
