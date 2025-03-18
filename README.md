@@ -11,6 +11,10 @@
 - mysql: 카프카 토픽이 유인된 데이터를 카프카 커넥터를 통해 db로 저장 보관
 - connect: 카프카 커넥터들을 등록하고 관리할 수 있는 서비스
 
+# docker compose 환경 (./loggen)
+- log-generator: go 기반의 가짜 아파치 웹 로그 생성기
+- filebeat: 생성된 로그 파일 카프카로 전달 역할
+
 # python requirements
 - avro
 - beautifulsoup4
